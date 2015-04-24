@@ -17,8 +17,9 @@ putting the repo into the datagbase, not the local directory structure.)
 - This may involve walking the tree of the repo, but it will be used for 
 repos of a specific structure so the tree walking code can be simple
 
+You will probably need this:
+https://github.com/inaka/erlang-github
 
-## BONUS:  Include API access to the hex.pm repos
+#### BONUS:  Include API access to the hex.pm repos
 
-## SUPER BONUS:  Figure out how to load a hex.pm library into the elixir VM
-at runtime and then call it!
+#### SUPER BONUS:  Figure out how to load a hex.pm library into the elixir VM at runtime and then call it!
