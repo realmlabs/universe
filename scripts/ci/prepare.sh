@@ -8,16 +8,17 @@ export INSTALL_PATH="$HOME/dependencies"
 
 export ERLANG_PATH="$INSTALL_PATH/otp_src_$ERLANG_VERSION"
 export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
-export GATEWAY_PATH="$INSTALL_PATH/gateway"
+export DIALYZER_PATH="$INSTALL_PATH/dialyxir"
 
 mkdir -p $INSTALL_PATH
 cd $INSTALL_PATH
 
-# Install erlang
+echo "Installing erlang... "
 if [ ! -e $ERLANG_PATH/bin/erl ]; then
   curl -O http://www.erlang.org/download/otp_src_$ERLANG_VERSION.tar.gz
   tar xzf otp_src_$ERLANG_VERSION.tar.gz
   cd $ERLANG_PATH
+  echo "Installing erlang... configure "
   ./configure --enable-smp-support \
               --enable-m64-build \
               --disable-native-libs \
@@ -26,6 +27,7 @@ if [ ! -e $ERLANG_PATH/bin/erl ]; then
               --enable-kernel-poll \
               --disable-hipe \
               --without-javac
+  echo "Installing erlang...making "
   make
 
   # Symlink to make it easier to setup PATH to run tests
@@ -39,31 +41,36 @@ if [ ! -e $ELIXIR_PATH/bin/elixir ]; then
   git clone https://github.com/elixir-lang/elixir $ELIXIR_PATH
   cd $ELIXIR_PATH
   git checkout $ELIXIR_VERSION
+  echo "Installing elixir... "
   make
 
   # Symlink to make it easier to setup PATH to run tests
   ln -sf $ELIXIR_PATH $INSTALL_PATH/elixir
 fi
+export PATH="$ERLANG_PATH/bin:$ELIXIR_PATH/bin:$PATH"
+elixir -v
 
-if [ ! -e $GATEWAY_PATH/sync_gateway ]; then
-  cd $GATEWAY_PATH
-  wget http://packages.couchbase.com/builds/mobile/sync_gateway/1.0.4/1.0.4-34/couchbase-sync-gateway-community_1.0.4-34_x86_64.deb
-  dpkg -i couchbase-sync-gateway-community_1.0.4-34_x86_64.deb
+echo "Installing dialyxir... "
+# Install dialyxir
+if [ ! -e $DIALYZER_PATH/bin/elixir ]; then
+  git clone https://github.com/jeremyjh/dialyxir $DIALYZER_PATH
+  cd $DIALYZER_PATH
+  echo "Installing dialyxir...building archive "
+  mix archive.build
+  echo "Installing dialyxir...installing archive "
+  yes | mix archive.install
+  echo "Installing dialyxir... analyzing base modules.  This will take awhile."
+  mix dialyzer.plt
+  echo "Installing dialyxir...done "
 
   # Symlink to make it easier to setup PATH to run tests
-  ln -sf $GATEWAY_PATH $INSTALL_PATH/sync_gateway
+  ln -sf $DIALYZER_PATH $INSTALL_PATH/dialyxir
 fi
 
-
-export PATH="$ERLANG_PATH/bin:$ELIXIR_PATH/bin:$GATEWAY_PATH:$PATH"
+echo "Installing package tools... "
 
 # Install package tools
 if [ ! -e $HOME/.mix/rebar ]; then
   yes Y | LC_ALL=en_GB.UTF-8 mix local.hex
   yes Y | LC_ALL=en_GB.UTF-8 mix local.rebar
 fi
-
-# Fetch and compile dependencies and application code (and include testing tools)
-export MIX_ENV="test"
-cd $HOME/$CIRCLE_PROJECT_REPONAME
-mix do deps.get, deps.compile, compile
