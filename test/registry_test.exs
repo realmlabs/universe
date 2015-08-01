@@ -16,7 +16,7 @@ defmodule Forwarder do
   end
 
   test "Registry calls", %{registry: registry} do
-    response = Universe.Registry.get(registry, {"github", "ex/ex", "101"})
-    assert response == "text"
+    {status, response} = Universe.Registry.clone(registry, {"github", "Snowie/DungeonGen", "39c024a5635078f778c1fe9f8f03b00658ab59c2"})
+    assert response.status_code == 200
   end
 end

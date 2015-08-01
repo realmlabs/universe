@@ -14,7 +14,7 @@ defmodule Universe.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-     [applications: [:logger, :httpoison]]
+     [applications: [:httpoison]]
      [mod: {Universe, []}]
   end
 
