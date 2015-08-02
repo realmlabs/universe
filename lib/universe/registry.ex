@@ -1,9 +1,6 @@
 defmodule Universe.Registry do
-	#require HTTPoison
 	use GenServer
-	#use Base
 	import Poison.Parser
-	#use String
 
 	@user_agent [{"User-Agent", "Elixir"}]
 
@@ -17,45 +14,62 @@ defmodule Universe.Registry do
 	end
 
 	#Return an api url to the tree in question
-	def recursive_tree_url(user, repo, sha) do
-		"https://api.github.com/repos/#{user}/#{repo}/git/trees/#{sha}?recursive=1"
+	def tree_url(user, repo, sha) do
+		"https://api.github.com/repos/#{user}/#{repo}/git/trees/#{sha}"
 	end
 
-	def fetch(url) do
-		HTTPoison.get(url)
+	#Get a url with specified parameters
+	def fetch(url, opts \\ %{}) do
+		HTTPoison.get(url, [], params: opts)
 	end
-	
+
+	#We've finished recursing, do nothing.
 	def writeRepoToDisk([], _repo) do
 	end
 
 	#Recurse over our list and write the repo to disk
-	def writeRepoToDisk([head | tail], repo) do
+	def writeRepoToDisk([head | tail], directory) do
 		#Choose between different git objects
 		case head.type do
+
 			#In the case of a blob, git seems to assure that the directory it is
 			# in precedes it, simply write it to disk.
-			"blob" -> 
-			{:ok, response} = fetch(head.url)
+			"blob" ->
+			{:ok, response} = fetch(head.url, %{access_token: "your_token_here", recursive: 1})
+
+			#Parse and decode the blob
 			content = parse!(response.body, keys: :atoms).content
 					  |> String.replace("\n", "")
 					  |> Base.decode64!
-			File.write("#{repo}/"<>head.path, content)
+
+			#Finally, write the blob to the path
+			File.write("#{directory}/"<>head.path, content)
 
 			#Directories are much the same way, it's safe to simply create them
-			"tree" -> File.mkdir("#{repo}/"<>head.path)
+			"tree" -> File.mkdir("#{directory}/"<>head.path)
+
 		end
 
 		#Recurse
-		writeRepoToDisk(tail, repo)
+		writeRepoToDisk(tail, directory)
 	end
 
 	#Catch the call to clone
 	def handle_call({:clone, {remote, user, repo, sha}}, _from, _state) do
-		{:ok, response} = fetch(recursive_tree_url(user, repo, sha))
+		#Get the base tree specified by the user
+		{:ok, response} = fetch(tree_url(user, repo, sha), %{access_token: "your_token_here", recursive: 1})
+
+		#Parse the json returned by github
 		content = parse!(response.body, keys: :atoms)
+
+		#Don't litter, place the repo in its own folder
 		File.mkdir(repo)
+
+		#Recursively iterate over the json and write the repo to disk
 		writeRepoToDisk(content.tree, repo)
-		{:reply, {:ok, response}, []}	
+
+		#Return :ok
+		{:reply, {:ok, response}, []}
 
 	end
 end
