@@ -35,6 +35,7 @@ defmodule Universe.Registry do
 			#In the case of a blob, git seems to assure that the directory it is
 			# in precedes it, simply write it to disk.
 			"blob" ->
+			#Get the json of the blob
 			{:ok, response} = fetch(head.url, %{access_token: "your_token_here", recursive: 1})
 
 			#Parse and decode the blob
