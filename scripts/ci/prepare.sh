@@ -52,7 +52,7 @@ elixir -v
 
 echo "Installing dialyxir... "
 # Install dialyxir
-if [ ! -e $DIALYZER_PATH/bin/elixir ]; then
+if [ ! -d $DIALYZER_PATH ]; then
   git clone https://github.com/jeremyjh/dialyxir $DIALYZER_PATH
   cd $DIALYZER_PATH
   echo "Installing dialyxir...building archive "
