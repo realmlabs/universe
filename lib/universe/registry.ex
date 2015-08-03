@@ -13,6 +13,11 @@ defmodule Universe.Registry do
 		GenServer.call __MODULE__, {:clone, {remote, user, repo, sha}}
 	end
 
+	#Helper function to determine if this map has the key we need
+	def verify(jsonMap, keyToTest) do
+		keyToTest in Map.keys(jsonMap)
+	end
+
 	#Return an api url to the tree in question
 	def tree_url(user, repo, sha) do
 		"https://api.github.com/repos/#{user}/#{repo}/git/trees/#{sha}"
@@ -35,20 +40,19 @@ defmodule Universe.Registry do
 			#In the case of a blob, git seems to assure that the directory it is
 			# in precedes it, simply write it to disk.
 			"blob" ->
-			#Get the json of the blob
-			{:ok, response} = fetch(head.url, %{access_token: "your_token_here", recursive: 1})
+				#Get the json of the blob
+				{:ok, response} = fetch(head.url, %{access_token: "your_token_here", recursive: 1})
 
-			#Parse and decode the blob
-			content = parse!(response.body, keys: :atoms).content
-					  |> String.replace("\n", "")
-					  |> Base.decode64!
+				#Parse and decode the blob
+				content = parse!(response.body, keys: :atoms).content
+					  	|> String.replace("\n", "")
+					  	|> Base.decode64!
 
-			#Finally, write the blob to the path
-			File.write("#{directory}/"<>head.path, content)
+				#Finally, write the blob to the path
+				File.write("#{directory}/"<>head.path, content)
 
 			#Directories are much the same way, it's safe to simply create them
 			"tree" -> File.mkdir("#{directory}/"<>head.path)
-
 		end
 
 		#Recurse
@@ -63,14 +67,22 @@ defmodule Universe.Registry do
 		#Parse the json returned by github
 		content = parse!(response.body, keys: :atoms)
 
-		#Don't litter, place the repo in its own folder
-		File.mkdir(repo)
+		#Verify we have a working tree
+		if verify(content, :tree) do
 
-		#Recursively iterate over the json and write the repo to disk
-		writeRepoToDisk(content.tree, repo)
+			#Don't litter, place the repo in its own folder
+			File.mkdir(repo)
 
-		#Return :ok
-		{:reply, {:ok, response}, []}
+			#Recursively iterate over the json and write the repo to disk
+			writeRepoToDisk(content.tree, repo)
+
+			#Return :ok
+			{:reply, {:ok, response}, []}
+		else
+
+			#Return an error
+			{:reply, {:bad_verify}, []}
+		end
 
 	end
 end

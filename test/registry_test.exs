@@ -16,6 +16,24 @@ defmodule Forwarder do
     {:ok, registry: registry}
   end
 
+  #Test json map keys
+  test "Verify json has key" do
+    #Test using a known commit to make sure we are capable of getting information.
+    {status, response} = Universe.Registry.fetch(Universe.Registry.tree_url("realmlabs", "universe", "b43e7a02e4819e3802aed69140be5778379c006f"))
+    assert status === :ok
+
+    content = parse!(response.body, keys: :atoms)
+
+    #This exists, so we must just be getting limited
+    if (response.status_code !== 200) do
+      assert Universe.Registry.verify(content, :documentation_url)
+      assert Universe.Registry.verify(content, :message)
+      assert content.documentation_url === "https://developer.github.com/v3/#rate-limiting"
+    else
+      assert Universe.Registry.verify(content, :sha)
+    end
+  end
+
   #Make sure we format URLs correctly
   test "Tree URL test" do
     assert Universe.Registry.tree_url("See", "Spot", "Run") === "https://api.github.com/repos/See/Spot/git/trees/Run"
