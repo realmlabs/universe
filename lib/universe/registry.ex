@@ -9,13 +9,27 @@ defmodule Universe.Registry do
 	end
 
 	#Clientside call to clone repos
-	def clone({remote, user, repo, sha}) do
+	def clone(remote, user, repo, sha \\ "") do
 		GenServer.call __MODULE__, {:clone, {remote, user, repo, sha}}
 	end
 
 	#Helper function to determine if this map has the key we need
 	def verify(jsonMap, keyToTest) do
 		keyToTest in Map.keys(jsonMap)
+	end
+
+
+	#Returns the last commit sha
+	def getLastCommitSha(user, repo, branch \\ "master", opts \\ []) do
+		{:ok, response} = fetch("https://api.github.com/repos/#{user}/#{repo}/git/refs/heads/#{branch}")
+
+		content = parse!(response.body, keys: :atoms)
+
+		if verify(content, :object) do
+			content.object.sha
+		else
+			:bad_verify
+		end
 	end
 
 	#Return an api url to the tree in question
@@ -61,6 +75,11 @@ defmodule Universe.Registry do
 
 	#Catch the call to clone
 	def handle_call({:clone, {remote, user, repo, sha}}, _from, _state) do
+		#Get the most recent commit if no commit was specified
+		if sha === "" do
+			sha = getLastCommitSha(user, repo, "master", %{access_token: "your_token_here", recursive: 1})
+		end
+
 		#Get the base tree specified by the user
 		{:ok, response} = fetch(tree_url(user, repo, sha), %{access_token: "your_token_here", recursive: 1})
 
