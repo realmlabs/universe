@@ -31,7 +31,8 @@ defmodule Universe.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [{:poison, "~> 1.4.0"},
-    {:httpoison, "~> 0.7"}
+    {:httpoison, "~> 0.7"},
+    {:ecto, "~> 0.14.3"}
     ]
   end
 end
