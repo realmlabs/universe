@@ -1,3 +1,12 @@
+defmodule ListUtility do
+  def map([], _func) do
+    []
+  end
+  def map([head | tail], func) do
+    [func.(head) | map(tail, func)]
+  end
+end
+
 defmodule Universe.Hex do
 	use GenServer
 
@@ -52,17 +61,31 @@ defmodule Universe.Hex do
   Universe.Hex.clone(dep) for each of them to account for deps of deps.
 
   ## Examples
-    iex> Universe.Hex.get_package_deps_URLs("https://hex.pm/packages/airbrake")
+    iex> Universe.Hex.get_package_deps_names("https://hex.pm/packages/airbrake")
     ["poison", "httpoison"]
   """
-  def get_package_deps_URLs(packageURL) do
-    []
+  def get_package_deps_names(packageURL) do
+    {:ok, response} = HTTPoison.get(packageURL)
+
+    #Crawl to dependencies
+    deps = Floki.find(response.body, ".row")
+    |> Floki.find(".list-unstyled")
+    |> Floki.find("li")
+    |> Floki.find("a")
+    |> Floki.attribute("href")
+
+    #Get rid first entry which is itself
+    deps = List.delete_at(deps, 0)
+
+    #Map to package names
+    deps = ListUtility.map(deps, &(List.last(String.split(&1, "/"))))
   end
 
+  #Recurse over deps list
   def get_deps([]) do
   end
   def get_deps([head | tail]) do
-    Universe.Hex.clone(head)
+    clone(head)
     get_deps(tail)
   end
 
@@ -71,9 +94,9 @@ defmodule Universe.Hex do
                    |> getGitHubURL
                    |> Universe.GitHub.url_to_api
 
-    #Recursively pulls deps
+    #Recursively pulls deps (Can we handle_call while in a handle_call?)
     getPackageURL(package)
-    |> get_package_deps_URLs
+    |> get_package_deps_names
     |> get_deps
 
     Universe.GitHub.clone("GitHub", user, repo)
