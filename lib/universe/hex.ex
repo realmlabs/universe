@@ -23,7 +23,7 @@ defmodule Universe.Hex do
     {:ok, response} = HTTPoison.get(packageURL)
 
 
-    #TODO:
+    #TODO: Github might not be the only link! Account for this
     #Crawl html to get URL
     url = Floki.find(response.body, ".row")
           |> Floki.find(".links")
@@ -46,11 +46,35 @@ defmodule Universe.Hex do
     "https://hex.pm/packages/#{package}"
   end
 
+  #TODO: Implement
+  @doc """
+  This should find the dependency list and do something along the lines of
+  Universe.Hex.clone(dep) for each of them to account for deps of deps.
+
+  ## Examples
+    iex> Universe.Hex.get_package_deps_URLs("https://hex.pm/packages/airbrake")
+    ["poison", "httpoison"]
+  """
+  def get_package_deps_URLs(packageURL) do
+    []
+  end
+
+  def get_deps([]) do
+  end
+  def get_deps([head | tail]) do
+    Universe.Hex.clone(head)
+    get_deps(tail)
+  end
+
   def handle_call({:clone, package}, _from, _state) do
-    {:reply, {:ok}, []}
     {user, repo} = getPackageURL(package)
                    |> getGitHubURL
                    |> Universe.GitHub.url_to_api
+
+    #Recursively pulls deps
+    getPackageURL(package)
+    |> get_package_deps_URLs
+    |> get_deps
 
     Universe.GitHub.clone("GitHub", user, repo)
   end
