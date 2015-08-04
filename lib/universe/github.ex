@@ -14,7 +14,7 @@ defmodule Universe.GitHub do
 	## Examples
 
 		iex> Universe.GitHub.url_to_api("https://github.com/realmlabs/universe")
-		{"realmlabs", "universe"}
+		%{user: "realmlabs", repo: "universe"}
 
 	"""
 	def url_to_api(github_url) do
@@ -22,7 +22,7 @@ defmodule Universe.GitHub do
 		a = List.delete_at(a, 0)
 				|> List.delete_at(0)
 				|> List.delete_at(0)
-		{List.first(a), List.last(a)}
+		%{user: List.first(a), repo: List.last(a)}
 	end
 
 	#Clientside call to clone repos

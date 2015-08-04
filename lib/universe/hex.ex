@@ -5,6 +5,17 @@ defmodule ListUtility do
   def map([head | tail], func) do
     [func.(head) | map(tail, func)]
   end
+
+  def get_non_float([], value) do
+    value
+  end
+  def get_non_float([head | tail], value) do
+    if Float.parse(head) === :error do
+      get_non_float(tail, [head | value])
+    else
+      get_non_float(tail, value)
+    end
+  end
 end
 
 defmodule Universe.Hex do
@@ -31,7 +42,6 @@ defmodule Universe.Hex do
   def getGitHubURL(packageURL) do
     {:ok, response} = HTTPoison.get(packageURL)
 
-
     #TODO: Github might not be the only link! Account for this
     #Crawl html to get URL
     url = Floki.find(response.body, ".row")
@@ -55,14 +65,14 @@ defmodule Universe.Hex do
     "https://hex.pm/packages/#{package}"
   end
 
-  #TODO: Implement
-  @doc """
+  #Currently broken for packages with more than one version.
+  @doc ~S"""
   This should find the dependency list and do something along the lines of
   Universe.Hex.clone(dep) for each of them to account for deps of deps.
 
   ## Examples
     iex> Universe.Hex.get_package_deps_names("https://hex.pm/packages/airbrake")
-    ["poison", "httpoison"]
+    ["httpoison", "poison"]
   """
   def get_package_deps_names(packageURL) do
     {:ok, response} = HTTPoison.get(packageURL)
@@ -75,10 +85,12 @@ defmodule Universe.Hex do
     |> Floki.attribute("href")
 
     #Get rid first entry which is itself
-    deps = List.delete_at(deps, 0)
+    #deps = List.delete_at(deps, 0)
 
     #Map to package names
     deps = ListUtility.map(deps, &(List.last(String.split(&1, "/"))))
+
+    deps = ListUtility.get_non_float(deps, [])
   end
 
   #Recurse over deps list
@@ -90,19 +102,16 @@ defmodule Universe.Hex do
   end
 
   def handle_call({:clone, package}, _from, _state) do
-    {user, repo} = getPackageURL(package)
-                   |> getGitHubURL
-                   |> Universe.GitHub.url_to_api
+    clone_list = getPackageURL(package)
+                 |> get_package_deps_names
 
-    #Recursively pulls deps (Can we handle_call while in a handle_call?)
-    #Currently broken.
-    unless true do
-      getPackageURL(package)
-      |> get_package_deps_names
-      |> get_deps
-    end
+    clone_list = [package | clone_list]
 
-    Universe.GitHub.clone("GitHub", user, repo)
+    clone_list = ListUtility.map(clone_list, &(getPackageURL(&1)))
+
+    github_list = ListUtility.map(clone_list, &(getGitHubURL(&1)))
+
+    ListUtility.map(github_list, &(Universe.GitHub.clone("GitHub", Universe.GitHub.url_to_api(&1).user, Universe.GitHub.url_to_api(&1).repo)))
 
     {:reply, {:ok}, []}
   end
