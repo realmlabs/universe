@@ -8,6 +8,23 @@ defmodule Universe.GitHub do
 		GenServer.start_link(__MODULE__, event_manager, opts)
 	end
 
+	@doc ~S"""
+  Get a tuple representing the user and repo from a url
+
+  ## Examples
+
+      iex> Universe.GitHub.url_to_api("https://github.com/realmlabs/universe")
+      {"realmlabs", "universe"}
+
+  """
+	def url_to_api(github_url) do
+		a = String.split(github_url, "/")
+		a = List.delete_at(a, 0)
+				|> List.delete_at(0)
+				|> List.delete_at(0)
+		{List.first(a), List.last(a)}
+	end
+
 	#Clientside call to clone repos
 	def clone(remote, user, repo, sha \\ "") do
 		GenServer.call __MODULE__, {:clone, {remote, user, repo, sha}}

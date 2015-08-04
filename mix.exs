@@ -32,7 +32,8 @@ defmodule Universe.Mixfile do
   defp deps do
     [{:poison, "~> 1.4.0"},
     {:httpoison, "~> 0.7"},
-    {:ecto, "~> 0.14.3"}
+    {:ecto, "~> 0.14.3"},
+    {:floki, "~> 0.3"}
     ]
   end
 end
