@@ -15,8 +15,8 @@ defmodule Universe.Hex do
 
   ## Examples
 
-      iex> Universe.Hex.getPackageURL("poison") |> Universe.Hex.getGitHubURL
-      "https://github.com/devinus/poison"
+    iex> Universe.Hex.getPackageURL("poison") |> Universe.Hex.getGitHubURL
+    "https://github.com/devinus/poison"
 
   """
   def getGitHubURL(packageURL) do
@@ -38,8 +38,8 @@ defmodule Universe.Hex do
 
   ## Examples
 
-      iex> Universe.Hex.getPackageURL "foobar"
-      "https://hex.pm/packages/foobar"
+    iex> Universe.Hex.getPackageURL "foobar"
+    "https://hex.pm/packages/foobar"
 
   """
   def getPackageURL(package) do

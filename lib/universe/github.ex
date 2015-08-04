@@ -9,14 +9,14 @@ defmodule Universe.GitHub do
 	end
 
 	@doc ~S"""
-  Get a tuple representing the user and repo from a url
+	Get a tuple representing the user and repo from a url
 
-  ## Examples
+	## Examples
 
-      iex> Universe.GitHub.url_to_api("https://github.com/realmlabs/universe")
-      {"realmlabs", "universe"}
+		iex> Universe.GitHub.url_to_api("https://github.com/realmlabs/universe")
+		{"realmlabs", "universe"}
 
-  """
+	"""
 	def url_to_api(github_url) do
 		a = String.split(github_url, "/")
 		a = List.delete_at(a, 0)
@@ -50,14 +50,14 @@ defmodule Universe.GitHub do
 	end
 
 	@doc ~S"""
-  Returns the tree url to the specified repo and sha
+	Returns the tree url to the specified repo and sha
 
-  ## Examples
+	## Examples
 
-      iex> Universe.GitHub.tree_url("See", "Spot", "Run")
-      "https://api.github.com/repos/See/Spot/git/trees/Run"
+		iex> Universe.GitHub.tree_url("See", "Spot", "Run")
+		"https://api.github.com/repos/See/Spot/git/trees/Run"
 
-  """
+	"""
 	def tree_url(user, repo, sha) do
 		"https://api.github.com/repos/#{user}/#{repo}/git/trees/#{sha}"
 	end
