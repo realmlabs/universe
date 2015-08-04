@@ -3,6 +3,8 @@ defmodule Forwarder do
   use ExUnit.Case
   import Poison.Parser
 
+  doctest Universe.GitHub
+
   def handle_event(event, parent) do
     send parent, event
     {:ok, parent}

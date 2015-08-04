@@ -32,7 +32,15 @@ defmodule Universe.GitHub do
 		end
 	end
 
-	#Return an api url to the tree in question
+	@doc ~S"""
+  Returns the tree url to the specified repo and sha
+
+  ## Examples
+
+      iex> Universe.GitHub.tree_url("See", "Spot", "Run")
+      "https://api.github.com/repos/See/Spot/git/trees/Run"
+
+  """
 	def tree_url(user, repo, sha) do
 		"https://api.github.com/repos/#{user}/#{repo}/git/trees/#{sha}"
 	end
