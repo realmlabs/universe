@@ -95,11 +95,16 @@ defmodule Universe.Hex do
                    |> Universe.GitHub.url_to_api
 
     #Recursively pulls deps (Can we handle_call while in a handle_call?)
-    getPackageURL(package)
-    |> get_package_deps_names
-    |> get_deps
+    #Currently broken.
+    unless true do
+      getPackageURL(package)
+      |> get_package_deps_names
+      |> get_deps
+    end
 
     Universe.GitHub.clone("GitHub", user, repo)
+
+    {:reply, {:ok}, []}
   end
 
 end
