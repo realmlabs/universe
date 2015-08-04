@@ -6,12 +6,14 @@ defmodule Universe.Supervisor do
 	end
 
 	@manager_name Universe.EventManager
-	@registry_name Universe.Registry
+	@git_server_name Universe.GitHub
+	@hex_name Universe.Hex
 
 	def init(:ok) do
 		children = [
 			worker(GenEvent, [[name: @manager_name]]),
-			worker(Universe.Registry, [@manager_name, [name: @registry_name]])
+			worker(Universe.GitHub, [@manager_name, [name: @git_server_name]]),
+			worker(Universe.Hex,    [@manager_name, [name: @hex_name]])
 		]
 		supervise(children, strategy: :one_for_one)
 	end

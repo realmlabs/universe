@@ -1,4 +1,4 @@
-defmodule Universe.Registry do
+defmodule Universe.GitHub do
 	use GenServer
 	import Poison.Parser
 
