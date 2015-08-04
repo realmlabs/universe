@@ -93,14 +93,6 @@ defmodule Universe.Hex do
     deps = ListUtility.get_non_float(deps, [])
   end
 
-  #Recurse over deps list
-  def get_deps([]) do
-  end
-  def get_deps([head | tail]) do
-    clone(head)
-    get_deps(tail)
-  end
-
   def handle_call({:clone, package}, _from, _state) do
     clone_list = getPackageURL(package)
                  |> get_package_deps_names
