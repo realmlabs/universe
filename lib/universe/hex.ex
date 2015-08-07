@@ -15,8 +15,8 @@ defmodule Universe.Hex do
 
   ## Example:
   
-  	iex> Universe.Hex.get_hex_url("httpoison","0.7.3")
-	"https://s3.amazonaws.com/s3.hex.pm/tarballs/httpoison-0.7.3.tar"
+  	iex> Universe.Hex.get_hex_url("httpoison","0.7")
+	"https://s3.amazonaws.com/s3.hex.pm/tarballs/httpoison-0.7.tar"
 
   """
   def get_hex_url(package, ver) do
@@ -40,6 +40,7 @@ defmodule Universe.Hex do
 
   """
   def get_package(package) do
+    fetch(get_hex_url(package, "0.7"), %{access_token: "your_token_here", recursive: 1})
   end
 
 
@@ -61,7 +62,13 @@ defmodule Universe.Hex do
   #----------------------------------------
 
   def handle_call({:clone, package}, _from, _state) do
-    {:reply, {:ok}, []}
+    if Mix.Tasks.Local.Hex.ensure_installed?(:clone) do
+      
+      {:reply, :ok, []}
+    else 
+      Mix.Tasks.Local.Hex.run([])
+      {:reply, :ok, []}
+    end 
   end
 
 end
